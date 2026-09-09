@@ -17,14 +17,25 @@ android {
         versionName = "0.5.4"
     }
 
+    signingConfigs {
+        // A committed debug keystore (standard debug credentials, not a secret) so that release
+        // APKs — including the ones CI publishes — always carry the same signature and can be
+        // installed as in-place upgrades of each other, on any machine.
+        create("release") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             // The whole APK is mapped into MediaProvider / system_server by LSPosed: keep it small.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Debug keystore so `assembleRelease` yields an installable APK for local testing.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

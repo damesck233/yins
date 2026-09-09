@@ -36,7 +36,9 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
 
 ## 安装
 
-1. `adb install -r app/build/outputs/apk/debug/app-debug.apk`
+预编译 APK 见 [Releases](../../releases)（每次推送到 `main` 由 GitHub Actions 自动打包）。或本地构建后：
+
+1. `adb install -r app/build/outputs/apk/release/app-release.apk`
 2. LSPosed 管理器 → 模块 → 启用 yins，作用域勾选：
    - `com.google.android.providers.media.module`（或 `com.android.providers.media.module`）
    - `com.google.android.permissioncontroller`（或 `com.android.permissioncontroller`）
