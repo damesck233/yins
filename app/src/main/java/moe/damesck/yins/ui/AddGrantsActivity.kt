@@ -7,6 +7,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.damesck.yins.R
@@ -24,20 +25,36 @@ class AddGrantsActivity : ComponentActivity() {
 
     private val picker = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
         if (uris.isEmpty()) {
-            finish()
+            returnToApp()
             return@registerForActivityResult
         }
         lifecycleScope.launch {
             val added = withContext(Dispatchers.IO) {
                 MediaProviderClient.grant(this@AddGrantsActivity, target, currentUserId(), uris)
             }
-            Toast.makeText(
-                this@AddGrantsActivity,
-                if (added >= 0) getString(R.string.grants_added, added) else getString(R.string.apply_failed, "grant"),
-                Toast.LENGTH_SHORT,
-            ).show()
-            finish()
+            // The app that's reading photos has already loaded its list, so the newly granted items
+            // only show up after it re-queries: tell the user to back out one level and re-enter.
+            val message = if (added >= 0) {
+                getString(R.string.grants_added_reenter, added)
+            } else {
+                getString(R.string.apply_failed, "grant")
+            }
+            // Post the toast while we are still the foreground app (ColorOS suppresses toasts from
+            // background apps), then give it a moment before we drop back to the original app.
+            Toast.makeText(this@AddGrantsActivity, message, Toast.LENGTH_LONG).show()
+            delay(500)
+            returnToApp()
         }
+    }
+
+    /**
+     * We run in our own isolated task (distinct taskAffinity), launched from the notification on
+     * top of the app that was reading photos. Removing our task returns the user to whatever was in
+     * front before — the original app — without us starting it ourselves (starting it would trip
+     * ColorOS's "X wants to open Y" cross-app-launch confirmation).
+     */
+    private fun returnToApp() {
+        finishAndRemoveTask()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -55,6 +55,7 @@
     <string name="notify_action_add">追加授权</string>
     <string name="notify_capsule">追加照片</string>
     <string name="grants_added">已追加 %1$d 项</string>
+    <string name="grants_added_reenter">已追加 %1$d 项，返回上一级重新进入即可看到</string>
     <string name="action_pick_media">添加照片</string>
     <string name="action_pick_files">添加文件</string>
     <string name="decision_current">当前</string>

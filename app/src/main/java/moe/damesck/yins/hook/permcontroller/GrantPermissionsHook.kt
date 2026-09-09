@@ -105,7 +105,13 @@ object GrantPermissionsHook {
     private fun onDecision(activity: Activity, resultCode: Int, data: Intent?) {
         val mode = Mode.fromName(data?.getStringExtra(DecisionIntents.EXTRA_RESULT_MODE))
         if (resultCode != Activity.RESULT_OK || mode == null) {
-            YLog.i("decision cancelled, falling back to system dialog")
+            // The user dismissed our dialog (cancel button or back). We *replace* the system dialog
+            // rather than sit on top of it, so close the system activity too instead of revealing
+            // it. Finishing without permission results makes the framework report the request as
+            // cancelled — the same as swiping the system dialog away.
+            YLog.i("decision dismissed; closing the system dialog")
+            activity.setResult(Activity.RESULT_CANCELED)
+            activity.finish()
             return
         }
         val names = activity.intent.getStringArrayExtra(EXTRA_NAMES) ?: emptyArray()

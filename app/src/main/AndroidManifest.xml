@@ -52,6 +52,7 @@
             android:name=".ui.AddGrantsActivity"
             android:excludeFromRecents="true"
             android:exported="true"
+            android:taskAffinity=".addgrants"
             android:theme="@style/Theme.Yins.Dialog" />
 
         <receiver
