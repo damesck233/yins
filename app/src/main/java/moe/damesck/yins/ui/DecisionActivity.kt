@@ -20,7 +20,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -257,7 +256,11 @@ private fun DecisionSheet(
                 Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.45f))
-                    .clickable(enabled = !busy, onClick = onCancel),
+                    // Tapping outside the sheet deliberately does nothing. Dismissing here would
+                    // fall through to the system permission dialog waiting behind us, which is
+                    // confusing; the user cancels with the explicit button instead. Consume the
+                    // tap so it never reaches whatever is underneath.
+                    .pointerInput(Unit) { detectTapGestures { } },
             )
         }
 
