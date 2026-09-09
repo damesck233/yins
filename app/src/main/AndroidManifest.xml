@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 16 Live Updates (promoted ongoing notifications). -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+
+    <application
+        android:name=".YinsApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Yins">
+
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="@string/xposed_description" />
+        <meta-data android:name="xposedminversion" android:value="93" />
+        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Launched for result by GrantPermissionsActivity (PermissionController) and by the
+            redirected "all files access" intent. Must stay in the caller's task so that
+            startActivityForResult works: no singleTask, no taskAffinity, and no noHistory
+            (the photo picker is launched on top of it and must be able to return).
+        -->
+        <activity
+            android:name=".ui.DecisionActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.Yins.Dialog" />
+
+        <!--
+            Opened from the "reading your photos" notification (posted by the MediaProvider hook,
+            hence exported); goes straight to the photo picker. Adding grants always goes through
+            the user's own selection, so being exported is harmless.
+        -->
+        <activity
+            android:name=".ui.AddGrantsActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.Yins.Dialog" />
+
+        <receiver
+            android:name=".MediaAccessReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="moe.damesck.yins.action.MEDIA_ACCESS" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name=".data.PolicyProvider"
+            android:authorities="moe.damesck.yins.policy"
+            android:directBootAware="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".PolicyPushReceiver"
+            android:directBootAware="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="moe.damesck.yins.action.REQUEST_POLICIES" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".BootReceiver"
+            android:directBootAware="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

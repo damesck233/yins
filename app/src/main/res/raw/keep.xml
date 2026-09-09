@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Looked up by name from the MediaProvider hook (LiveUpdatePoster); the shrinker must not drop them. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_yins,@string/notify_reading_title,@string/notify_reading_text,@string/notify_action_add,@string/notify_capsule" />

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="xposed_scope">
+        <item>com.google.android.providers.media.module</item>
+        <item>com.android.providers.media.module</item>
+        <item>com.google.android.permissioncontroller</item>
+        <item>com.android.permissioncontroller</item>
+        <item>android</item>
+    </string-array>
+</resources>

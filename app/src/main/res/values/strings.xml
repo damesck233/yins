@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">yins</string>
+    <string name="xposed_description">存储/相册空白通行证：授予 / 空白 / 部分 / 拒绝</string>
+
+    <string name="module_active">模块已激活</string>
+    <string name="module_inactive">模块未激活</string>
+    <string name="module_inactive_desc">请在 LSPosed 中启用并勾选作用域后重启</string>
+    <string name="module_stale">需要重启手机</string>
+    <string name="module_stale_desc">模块已更新，但 MediaProvider 仍在运行旧版本</string>
+    <string name="status_managed_count">已管理 %1$d 个应用</string>
+    <string name="search_hint">搜索应用</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_managed">已管理</string>
+    <string name="filter_unmanaged">未管理</string>
+    <string name="filter_system">系统应用</string>
+    <string name="section_managed">已管理</string>
+    <string name="section_unmanaged">未管理</string>
+    <string name="empty_list">没有匹配的应用</string>
+    <string name="clear_search">清除</string>
+
+    <string name="mode_full">授予</string>
+    <string name="mode_blank">空白通行证</string>
+    <string name="mode_partial">授权部分</string>
+    <string name="mode_deny">不授予</string>
+    <string name="mode_none">未设置</string>
+    <string name="mode_apply">应用</string>
+
+    <string name="mode_full_desc">正常授予，可访问全部存储和媒体</string>
+    <string name="mode_blank_desc">App 以为已授权，实际只见自己写的文件</string>
+    <string name="mode_partial_desc">自己写的文件 + 你选中的图片/视频/文件</string>
+    <string name="mode_deny_desc">拒绝授权，并且不再弹窗</string>
+
+    <string name="decision_title">%1$s 请求存储权限</string>
+    <string name="decision_subtitle_runtime">请求的权限：%1$s</string>
+    <string name="decision_subtitle_all_files">请求「全部文件访问」权限</string>
+    <string name="decision_wants">想要访问：%1$s</string>
+    <string name="decision_recommended">推荐</string>
+    <string name="reason_trusted">通讯 / 工具类应用，发图发文件是正常用途，建议正常授予</string>
+    <string name="reason_temporary">生活服务 / 内容类应用，偶尔才用几张图，建议只给选中的</string>
+    <string name="reason_unknown">不熟悉的应用，建议先给空白通行证，它看不到你的照片也不会崩</string>
+    <string name="decision_applying">正在应用…</string>
+
+    <string name="perm_all_files">全部文件</string>
+    <string name="perm_images">照片</string>
+    <string name="perm_video">视频</string>
+    <string name="perm_audio">音频</string>
+    <string name="perm_storage">存储空间</string>
+    <string name="perm_media_location">照片位置信息</string>
+
+    <string name="notify_channel_name">相册访问提示</string>
+    <string name="notify_channel_desc">部分授权的 App 读取相册时提示，可顺手追加可见的照片</string>
+    <string name="notify_reading_title">%1$s 正在读取相册</string>
+    <string name="notify_reading_text">它目前只能看到你选中的照片，点击追加</string>
+    <string name="notify_action_add">追加授权</string>
+    <string name="notify_capsule">追加照片</string>
+    <string name="grants_added">已追加 %1$d 项</string>
+    <string name="action_pick_media">添加照片</string>
+    <string name="action_pick_files">添加文件</string>
+    <string name="decision_current">当前</string>
+    <string name="grants_unresolved">%1$d 个文件不在媒体库索引中，无法授权</string>
+    <string name="action_clear_grants">清空已选</string>
+    <string name="grants_cleared">已清空</string>
+    <string name="action_remove_policy">清除策略</string>
+    <string name="section_policy">策略</string>
+    <string name="section_grants">可见的内容</string>
+    <string name="applied">已应用，建议重启该应用</string>
+    <string name="hint_all_files_scope">此应用申请了「全部文件访问」。空白 / 部分模式下不会真的给它，但它自己检查时会以为已经拿到，不会反复要。</string>
+    <string name="apply_failed">应用失败：%1$s</string>
+    <string name="root_missing">未获得 Root 授权：请在 SukiSU / KernelSU / Magisk 里允许 yins，然后重试</string>
+</resources>
