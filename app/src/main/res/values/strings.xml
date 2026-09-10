@@ -65,6 +65,12 @@
     <string name="action_remove_policy">清除策略</string>
     <string name="section_policy">策略</string>
     <string name="section_grants">可见的内容</string>
+    <string name="auto_revoke_label">自动收回</string>
+    <string name="auto_revoke_off">长期</string>
+    <string name="auto_revoke_30m">30 分钟</string>
+    <string name="auto_revoke_1h">1 小时</string>
+    <string name="auto_revoke_8h">8 小时</string>
+    <string name="auto_revoke_active">%1$s自动收回已选内容</string>
     <string name="applied">已应用，建议重启该应用</string>
     <string name="hint_all_files_scope">此应用申请了「全部文件访问」。空白 / 部分模式下不会真的给它，但它自己检查时会以为已经拿到，不会反复要。</string>
     <string name="apply_failed">应用失败：%1$s</string>

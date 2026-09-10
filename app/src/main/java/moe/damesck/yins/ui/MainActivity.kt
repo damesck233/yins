@@ -115,8 +115,12 @@ private fun MainScreen() {
     val policyByPackage = remember(policies) { policies.associateBy { it.packageName } }
 
     LaunchedEffect(includeSystem) { apps = AppCatalog.load(context, includeSystem) }
-    // Opening the manager is a cheap moment to make sure MediaProvider has the current policies.
-    LaunchedEffect(Unit) { repo.push() }
+    // Opening the manager is a cheap moment to make sure MediaProvider has the current policies
+    // and to sweep up any temporary grants whose timer elapsed while we were closed.
+    LaunchedEffect(Unit) {
+        repo.push()
+        moe.damesck.yins.data.GrantTimers.reconcile(context)
+    }
 
     // Needed for the "app is reading your photos" Live Update.
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}

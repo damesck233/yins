@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NoteAdd
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.damesck.yins.R
+import moe.damesck.yins.data.GrantTimers
 import moe.damesck.yins.data.MediaProviderClient
 import moe.damesck.yins.data.Mode
 import moe.damesck.yins.data.PolicyContract
@@ -77,6 +79,7 @@ fun AppDetailSheet(
         if (uris.isEmpty()) return
         scope.launch {
             val added = withContext(Dispatchers.IO) { MediaProviderClient.grant(context, app.packageName, currentUserId(), uris) }
+            if (added > 0) GrantTimers.onGranted(context, app.packageName, currentUserId())
             val text = when {
                 added < 0 -> context.getString(R.string.apply_failed, "grant")
                 added < uris.size -> context.getString(R.string.grants_added, added) + "，" + context.getString(R.string.grants_unresolved, uris.size - added)
@@ -85,6 +88,8 @@ fun AppDetailSheet(
             Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
         }
     }
+    val userId = currentUserId()
+    var autoRevokeMin by remember(app.packageName) { mutableStateOf(GrantTimers.durationMinutes(context, app.packageName, userId)) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { grant(it) }
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { grant(it) }
 
@@ -179,6 +184,39 @@ fun AppDetailSheet(
                     modifier = Modifier.weight(1f),
                 ) { filePicker.launch(arrayOf("*/*")) }
             }
+
+            // Temporary grants: after the chosen window the picked photos are auto-revoked.
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.auto_revoke_label), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(6.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((min, labelRes) in AUTO_REVOKE_OPTIONS) {
+                    androidx.compose.material3.FilterChip(
+                        selected = autoRevokeMin == min,
+                        onClick = {
+                            autoRevokeMin = min
+                            GrantTimers.setDuration(context, app.packageName, userId, min)
+                        },
+                        label = { Text(stringResource(labelRes)) },
+                    )
+                }
+            }
+            val expiry = GrantTimers.expiryAt(context, app.packageName, userId)
+            if (autoRevokeMin > 0 && expiry > System.currentTimeMillis()) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(
+                        R.string.auto_revoke_active,
+                        android.text.format.DateUtils.getRelativeTimeSpanString(expiry, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS).toString(),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -241,5 +279,13 @@ private fun IconTonalButton(icon: ImageVector, text: String, modifier: Modifier 
         Text(text, maxLines = 1)
     }
 }
+
+/** (minutes, label) options for auto-revoking temporary partial grants; 0 = keep until cleared. */
+private val AUTO_REVOKE_OPTIONS = listOf(
+    0 to R.string.auto_revoke_off,
+    30 to R.string.auto_revoke_30m,
+    60 to R.string.auto_revoke_1h,
+    480 to R.string.auto_revoke_8h,
+)
 
 fun currentUserId(): Int = android.os.Process.myUid() / 100_000

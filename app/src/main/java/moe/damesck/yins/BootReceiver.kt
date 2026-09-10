@@ -16,6 +16,7 @@ class BootReceiver : BroadcastReceiver() {
         val app = context.applicationContext
         thread(name = "yins-boot-push") {
             try {
+                kotlinx.coroutines.runBlocking { moe.damesck.yins.data.GrantTimers.reconcile(app) }
                 repeat(RETRIES) { attempt ->
                     if (MediaProviderClient.pushAll(app)) {
                         YLog.i("boot push ok after ${attempt + 1} attempt(s)")

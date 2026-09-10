@@ -32,6 +32,7 @@ class AddGrantsActivity : ComponentActivity() {
             val added = withContext(Dispatchers.IO) {
                 MediaProviderClient.grant(this@AddGrantsActivity, target, currentUserId(), uris)
             }
+            if (added > 0) moe.damesck.yins.data.GrantTimers.onGranted(this@AddGrantsActivity, target, currentUserId())
             // The app that's reading photos has already loaded its list, so the newly granted items
             // only show up after it re-queries: tell the user to back out one level and re-enter.
             val message = if (added >= 0) {
