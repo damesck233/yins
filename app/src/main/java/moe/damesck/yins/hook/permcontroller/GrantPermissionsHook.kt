@@ -23,6 +23,15 @@ object GrantPermissionsHook {
     private const val GRANT_ACTIVITY = "com.android.permissioncontroller.permission.ui.GrantPermissionsActivity"
     private const val REQUEST_CODE = 0x7159
 
+    // Instance fields / loop guard for the mixed-request flow.
+    private const val FIELD_MIXED = "yins.mixed"
+    private const val FIELD_SIG = "yins.sig"
+    private const val HANDLED_WINDOW_MS = 8_000L
+    private val recentlyHandled = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    private fun signature(target: String, names: Array<String>): String =
+        target + "|" + names.sorted().joinToString(",")
+
     // Hidden PackageManager extras used by Activity.requestPermissions / dispatchRequestPermissionsResult.
     private const val EXTRA_NAMES = "android.content.pm.extra.REQUEST_PERMISSIONS_NAMES"
     private const val EXTRA_RESULTS = "android.content.pm.extra.REQUEST_PERMISSIONS_RESULTS"
@@ -63,22 +72,30 @@ object GrantPermissionsHook {
         if (activity.isFinishing) return
         val names = activity.intent.getStringArrayExtra(EXTRA_NAMES) ?: return
         if (names.isEmpty()) return
-        if (!names.all { PolicyContract.isStoragePermission(it) }) {
-            if (names.any { PolicyContract.isStoragePermission(it) }) {
-                YLog.i("mixed permission request from ${activity.callingPackage}, not intercepting: ${names.joinToString()}")
-            }
-            return
-        }
+        val storagePerms = names.filter { PolicyContract.isStoragePermission(it) }
+        if (storagePerms.isEmpty()) return
         val target = targetPackage(activity)
         if (target == null) {
             YLog.w("cannot determine requesting package (callingPackage=null, action=${activity.intent.action}); leaving system dialog")
             return
         }
         if (target == PolicyContract.MANAGER_PACKAGE) return
-        YLog.i("intercepting storage request from $target: ${names.joinToString()}")
+
+        // Mixed request (storage + something else, e.g. camera): we handle only the storage part in
+        // yins, then let the system dialog finish the rest. The signature guard breaks the loop when
+        // we recreate() the activity after applying our decision.
+        val mixed = storagePerms.size < names.size
+        val sig = signature(target, names)
+        if (mixed && System.currentTimeMillis() - (recentlyHandled[sig] ?: 0L) < HANDLED_WINDOW_MS) {
+            YLog.i("mixed request already offered to yins; system handles the rest for $target")
+            return
+        }
+        XposedHelpers.setAdditionalInstanceField(activity, FIELD_MIXED, mixed)
+        XposedHelpers.setAdditionalInstanceField(activity, FIELD_SIG, sig)
+        YLog.i("intercepting ${if (mixed) "mixed" else "storage"} request from $target: ${storagePerms.joinToString()}")
         try {
             activity.startActivityForResult(
-                DecisionIntents.build(target, names, DecisionIntents.SOURCE_RUNTIME),
+                DecisionIntents.build(target, storagePerms.toTypedArray(), DecisionIntents.SOURCE_RUNTIME),
                 REQUEST_CODE,
             )
         } catch (t: Throwable) {
@@ -103,6 +120,23 @@ object GrantPermissionsHook {
     }
 
     private fun onDecision(activity: Activity, resultCode: Int, data: Intent?) {
+        val mixed = XposedHelpers.getAdditionalInstanceField(activity, FIELD_MIXED) as? Boolean ?: false
+        if (mixed) {
+            // yins has applied its decision to the storage perms (or the user cancelled). Those are
+            // now set at the OS level, so re-run the system flow: granted ones are skipped and it
+            // only prompts for what is left (camera, contacts, ...). The signature guard stops us
+            // from intercepting the recreated instance again.
+            (XposedHelpers.getAdditionalInstanceField(activity, FIELD_SIG) as? String)?.let {
+                recentlyHandled[it] = System.currentTimeMillis()
+            }
+            YLog.i("mixed request: storage part handled by yins, letting system finish the rest")
+            try {
+                activity.recreate()
+            } catch (t: Throwable) {
+                YLog.e("recreate after mixed decision failed", t)
+            }
+            return
+        }
         val mode = Mode.fromName(data?.getStringExtra(DecisionIntents.EXTRA_RESULT_MODE))
         if (resultCode != Activity.RESULT_OK || mode == null) {
             // The user dismissed our dialog (cancel button or back). We *replace* the system dialog
