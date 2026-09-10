@@ -159,6 +159,13 @@ object PolicyCache {
 
     fun modeForPackage(packageName: String, userId: Int): Mode? = snapshot.get(packageName, userId)
 
+    /** Whether this uid opted into hiding foreign directory names. Uses the resolved package. */
+    fun hideDirsForUid(uid: Int): Boolean {
+        if (!loaded) return false
+        val pkg = uidPackages[uid] ?: run { resolve(uid); uidPackages[uid] } ?: return false
+        return snapshot.hideDirectories(pkg, uid / PER_USER_RANGE)
+    }
+
     private fun resolve(uid: Int): Mode? {
         val ctx = context ?: return null
         val packages = try {

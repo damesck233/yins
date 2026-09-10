@@ -70,8 +70,16 @@ class MainActivity : ComponentActivity() {
                         startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName")))
                     }) { Text("申请全部文件") }
                 }
+                Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                    // Mixed request: camera (non-storage) + photos (storage) together, to test that
+                    // yins handles the storage part and the system handles the camera part.
+                    requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES), 2)
+                }) { Text("申请相机+相册（混合）") }
                 Button(modifier = Modifier.fillMaxWidth(), onClick = { probe("一键检测") { fullReport() } }) {
                     Text("一键检测")
+                }
+                OutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = { probe("列 /sdcard 根目录") { list("/storage/emulated/0") } }) {
+                    Text("列 /sdcard 根目录")
                 }
 
                 Spacer(Modifier.height(8.dp))

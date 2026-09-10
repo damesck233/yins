@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 class ModeConverters {
     @TypeConverter
@@ -15,13 +17,19 @@ class ModeConverters {
     fun stringToMode(value: String): Mode = Mode.valueOf(value)
 }
 
-@Database(entities = [Policy::class], version = 1, exportSchema = false)
+@Database(entities = [Policy::class], version = 2, exportSchema = false)
 @TypeConverters(ModeConverters::class)
 abstract class PolicyDatabase : RoomDatabase() {
     abstract fun policyDao(): PolicyDao
 
     companion object {
         private const val DB_NAME = "policies.db"
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE policies ADD COLUMN hideDirectories INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         @Volatile
         private var instance: PolicyDatabase? = null
@@ -35,7 +43,7 @@ abstract class PolicyDatabase : RoomDatabase() {
                 context.applicationContext.createDeviceProtectedStorageContext(),
                 PolicyDatabase::class.java,
                 DB_NAME,
-            ).build().also { instance = it }
+            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
         }
     }
 }

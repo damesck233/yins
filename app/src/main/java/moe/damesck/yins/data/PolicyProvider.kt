@@ -36,7 +36,7 @@ class PolicyProvider : ContentProvider() {
         val cursor = MatrixCursor(COLUMNS)
         val policies = PolicyDatabase.get(ctx).policyDao().getAllBlocking()
         for (p in policies) {
-            cursor.addRow(arrayOf<Any>(p.packageName, p.userId, p.mode.name, p.updatedAt))
+            cursor.addRow(arrayOf<Any>(p.packageName, p.userId, p.mode.name, if (p.hideDirectories) 1 else 0, p.updatedAt))
         }
         return cursor
     }
@@ -107,6 +107,7 @@ class PolicyProvider : ContentProvider() {
             PolicyContract.COL_PACKAGE,
             PolicyContract.COL_USER_ID,
             PolicyContract.COL_MODE,
+            PolicyContract.COL_HIDE_DIRS,
             PolicyContract.COL_UPDATED_AT,
         )
     }

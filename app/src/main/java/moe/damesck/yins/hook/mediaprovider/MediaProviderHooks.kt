@@ -29,7 +29,7 @@ object MediaProviderHooks {
      * value reported by the running hook to decide whether a reboot is needed; using the app's
      * versionCode would nag after UI-only updates.
      */
-    const val HOOK_REVISION = 17
+    const val HOOK_REVISION = 19
 
     private const val MEDIA_PROVIDER = "com.android.providers.media.MediaProvider"
     private const val LOCAL_CALLING_IDENTITY = "com.android.providers.media.LocalCallingIdentity"

@@ -25,5 +25,7 @@ data class Policy(
     val packageName: String,
     val userId: Int = 0,
     val mode: Mode,
+    /** Opt-in: also hide foreign directory *names* from this app's directory listings. */
+    val hideDirectories: Boolean = false,
     val updatedAt: Long = System.currentTimeMillis(),
 )

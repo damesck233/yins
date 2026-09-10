@@ -16,6 +16,7 @@ object PolicyContract {
     const val COL_PACKAGE = "package_name"
     const val COL_USER_ID = "user_id"
     const val COL_MODE = "mode"
+    const val COL_HIDE_DIRS = "hide_dirs"
     const val COL_UPDATED_AT = "updated_at"
 
     /** Private methods handled by our hook inside MediaProvider.call(). */
