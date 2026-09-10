@@ -26,6 +26,9 @@ object PolicyContract {
 
     /** Manager pushes the complete policy list; MediaProvider never has to read our provider. */
     const val METHOD_SET_POLICIES = "yins.setPolicies"
+    const val METHOD_GET_LOG = "yins.getLog"
+    const val METHOD_CLEAR_LOG = "yins.clearLog"
+    const val EXTRA_LOG = "yins.log"
 
     /** Explicit broadcast from the MediaProvider hook asking the manager to push policies. */
     const val ACTION_REQUEST_POLICIES = "moe.damesck.yins.action.REQUEST_POLICIES"

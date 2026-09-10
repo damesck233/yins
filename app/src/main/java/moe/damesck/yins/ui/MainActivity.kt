@@ -34,6 +34,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.LockReset
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RestartAlt
@@ -163,6 +164,14 @@ private fun MainScreen() {
                         Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.menu_more))
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.menu_access_log)) },
+                            leadingIcon = { Icon(Icons.Outlined.History, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                context.startActivity(android.content.Intent(context, AccessLogActivity::class.java))
+                            },
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.menu_revoke_all)) },
                             leadingIcon = { Icon(Icons.Outlined.LockReset, contentDescription = null) },

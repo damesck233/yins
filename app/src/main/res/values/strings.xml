@@ -71,7 +71,14 @@
     <string name="root_missing">未获得 Root 授权：请在 SukiSU / KernelSU / Magisk 里允许 yins，然后重试</string>
 
     <string name="menu_more">更多</string>
+    <string name="menu_access_log">访问记录</string>
     <string name="menu_revoke_all">收回全部真实权限</string>
+    <string name="access_log_title">访问记录</string>
+    <string name="access_log_hint">受管应用尝试读取相册/视频的记录，同一应用短时间内只记一条。</string>
+    <string name="access_log_empty">还没有记录。受管应用读取相册时会出现在这里。</string>
+    <string name="access_log_blocked">%1$s · 已拦截，看不到你的照片</string>
+    <string name="access_log_limited">%1$s · 只看到你选中的</string>
+    <string name="access_log_clear">清空记录</string>
     <string name="revoke_all_title">收回全部真实权限？</string>
     <string name="revoke_all_message">将撤销所有受管应用真实持有的相册 / 存储权限，并清空已选文件。适合在卸载模块或取消 Root 之前使用，避免遮蔽失效后留下真实授权。策略设置会保留。</string>
     <string name="revoke_all_confirm">收回</string>

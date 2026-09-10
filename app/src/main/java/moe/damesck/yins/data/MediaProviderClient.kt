@@ -73,4 +73,22 @@ object MediaProviderClient {
         }
         return call(context, PolicyContract.METHOD_CLEAR_GRANTS, extras).ok()
     }
+
+    /** One recorded media-access attempt by a managed app. */
+    data class AccessEntry(val wallClock: Long, val pkg: String, val mode: String, val blocked: Boolean)
+
+    /** Fetch the access log from MediaProvider, newest first. Empty if unreachable. */
+    fun getLog(context: Context): List<AccessEntry> {
+        val reply = call(context, PolicyContract.METHOD_GET_LOG) ?: return emptyList()
+        if (!reply.ok()) return emptyList()
+        val raw = reply.getStringArray(PolicyContract.EXTRA_LOG) ?: return emptyList()
+        return raw.mapNotNull { line ->
+            val p = line.split('')
+            if (p.size != 4) return@mapNotNull null
+            val t = p[0].toLongOrNull() ?: return@mapNotNull null
+            AccessEntry(t, p[1], p[2], p[3] == "1")
+        }
+    }
+
+    fun clearLog(context: Context): Boolean = call(context, PolicyContract.METHOD_CLEAR_LOG).ok()
 }

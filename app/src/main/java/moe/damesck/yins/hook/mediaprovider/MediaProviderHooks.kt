@@ -29,7 +29,7 @@ object MediaProviderHooks {
      * value reported by the running hook to decide whether a reboot is needed; using the app's
      * versionCode would nag after UI-only updates.
      */
-    const val HOOK_REVISION = 16
+    const val HOOK_REVISION = 17
 
     private const val MEDIA_PROVIDER = "com.android.providers.media.MediaProvider"
     private const val LOCAL_CALLING_IDENTITY = "com.android.providers.media.LocalCallingIdentity"
@@ -184,12 +184,20 @@ object MediaProviderHooks {
             } catch (t: Throwable) {
                 return
             }
-            when (PolicyCache.modeForUid(uid)) {
-                Mode.BLANK -> param.result = false
+            when (val mode = PolicyCache.modeForUid(uid)) {
+                Mode.BLANK -> {
+                    param.result = false
+                    if (permission and visualReadBits != 0) {
+                        AccessLog.record(PolicyCache.appContext, uid, PolicyCache.packageForUid(uid), mode.name, blocked = true)
+                    }
+                }
                 Mode.PARTIAL -> {
                     param.result = permission == userSelectedBit
                     if (permission and visualReadBits != 0) {
-                        AccessNotifier.report(PolicyCache.appContext, uid, PolicyCache.packageForUid(uid))
+                        val ctx = PolicyCache.appContext
+                        val pkg = PolicyCache.packageForUid(uid)
+                        AccessNotifier.report(ctx, uid, pkg)
+                        AccessLog.record(ctx, uid, pkg, mode.name, blocked = false)
                     }
                 }
                 else -> Unit
@@ -257,6 +265,14 @@ object MediaProviderHooks {
                     val userId = extras.getInt(PolicyContract.EXTRA_USER_ID, 0)
                     reply.putString(PolicyContract.EXTRA_MODE, PolicyCache.modeForPackage(pkg, userId)?.name ?: "none")
                 }
+                true
+            }
+            PolicyContract.METHOD_GET_LOG -> {
+                reply.putStringArray(PolicyContract.EXTRA_LOG, AccessLog.encodeAll())
+                true
+            }
+            PolicyContract.METHOD_CLEAR_LOG -> {
+                AccessLog.clear()
                 true
             }
             PolicyContract.METHOD_RELOAD -> PolicyCache.reload()
