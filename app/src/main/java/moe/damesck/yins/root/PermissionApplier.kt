@@ -1,8 +1,10 @@
 package moe.damesck.yins.root
 
+import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import moe.damesck.yins.YLog
+import moe.damesck.yins.data.MediaProviderClient
 import moe.damesck.yins.data.Mode
 import moe.damesck.yins.data.PolicyContract
 
@@ -52,6 +54,31 @@ object PermissionApplier {
         if (forceStop) cmds += "am force-stop $packageName"
         return cmds
     }
+
+    /**
+     * Safety net for before uninstalling the module or removing root: revoke the *real* storage /
+     * media permissions from every managed app and clear their picked files, so nothing is left
+     * over-granted once the MediaProvider masking is gone. Policy rows are kept, so re-enabling the
+     * module restores the intended behaviour. Returns how many packages were processed.
+     */
+    suspend fun revokeAll(context: Context, packageNames: List<String>, userId: Int): Result<Int> =
+        withContext(Dispatchers.IO) {
+            if (packageNames.isEmpty()) return@withContext Result.success(0)
+            if (!RootShell.isRoot()) return@withContext Result.failure(NoRootException())
+            var done = 0
+            for (pkg in packageNames) {
+                if (!pkg.matches(Regex("[A-Za-z0-9_.]+"))) continue
+                val cmds = ArrayList<String>()
+                PolicyContract.RUNTIME_STORAGE_PERMISSIONS.forEach { cmds += "pm revoke $pkg $it" }
+                cmds += "appops set --uid $pkg MANAGE_EXTERNAL_STORAGE ignore"
+                cmds += "am force-stop $pkg"
+                RootShell.run(cmds)
+                runCatching { MediaProviderClient.clearGrants(context, pkg, userId) }
+                done++
+            }
+            YLog.i("revokeAll: processed $done package(s)")
+            Result.success(done)
+        }
 
     /**
      * Runs [commands] as root. Individual `pm grant` failures (permission not declared by the app,

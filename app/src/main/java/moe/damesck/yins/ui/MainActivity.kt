@@ -34,9 +34,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.LockReset
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -145,11 +149,27 @@ private fun MainScreen() {
     val (managed, unmanaged) = remember(visible, policyByPackage) { visible.partition { it.packageName in policyByPackage } }
     val managedCount = remember(apps, policyByPackage) { apps.count { it.packageName in policyByPackage } }
 
+    var menuOpen by remember { mutableStateOf(false) }
+    var showRevokeConfirm by remember { mutableStateOf(false) }
+    var revoking by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.SemiBold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                actions = {
+                    IconButton(onClick = { menuOpen = true }) {
+                        Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.menu_more))
+                    }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.menu_revoke_all)) },
+                            leadingIcon = { Icon(Icons.Outlined.LockReset, contentDescription = null) },
+                            onClick = { menuOpen = false; showRevokeConfirm = true },
+                        )
+                    }
+                },
             )
         },
         containerColor = MaterialTheme.colorScheme.surface,
@@ -218,6 +238,40 @@ private fun MainScreen() {
                 AppRow(app, null) { selected = app }
             }
         }
+    }
+
+    if (showRevokeConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { if (!revoking) showRevokeConfirm = false },
+            title = { Text(stringResource(R.string.revoke_all_title)) },
+            text = { Text(stringResource(R.string.revoke_all_message)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    enabled = !revoking,
+                    onClick = {
+                        revoking = true
+                        scope.launch {
+                            val pkgs = policies.map { it.packageName }
+                            val result = PermissionApplier.revokeAll(context, pkgs, currentUserId())
+                            revoking = false
+                            showRevokeConfirm = false
+                            result.onSuccess { n ->
+                                Toast.makeText(context, context.getString(R.string.revoke_all_done, n), Toast.LENGTH_LONG).show()
+                            }.onFailure {
+                                val msg = if (it is moe.damesck.yins.root.NoRootException) context.getString(R.string.root_missing)
+                                else context.getString(R.string.apply_failed, it.message)
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                ) { Text(stringResource(if (revoking) R.string.revoke_all_running else R.string.revoke_all_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(enabled = !revoking, onClick = { showRevokeConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     selected?.let { app ->

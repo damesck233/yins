@@ -13,8 +13,8 @@ android {
         applicationId = "moe.damesck.yins"
         minSdk = 34
         targetSdk = 36
-        versionCode = 25
-        versionName = "0.5.6"
+        versionCode = 26
+        versionName = "0.6.0"
     }
 
     signingConfigs {
